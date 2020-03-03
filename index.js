@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcryptjs = require('bcryptjs');
 const config = require('./config.json');
+const products = require('./products.json');
 
 const port = 3000;
 
@@ -24,4 +25,14 @@ db.once('once', function() {
 
 app.get('/', (req, res) => res.send('Hello world'));
 
-app.listen(port, () => console.log('Listening on port 3000'));
+app.use((req,res, next)=>{
+  console.log(`${req.method} request for ${req.url}`);
+  next();//include this to go to the next middleware
+});
+
+app.get('/allProducts', (req,res)=>{
+  res.json(products);
+});
+
+//keep this always at the bottom so that you can see the errors reported
+app.listen(port, () => console.log(`Example app listening on port ${port}!`))
