@@ -34,5 +34,16 @@ app.get('/allProducts', (req,res)=>{
   res.json(products);
 });
 
+app.get('/product/:id', (req,res)=>{
+  const idParam = req.params.id;
+  for(let i = 0; i< products.length; i++){
+    if(idParam.toString() === products[i].id) {
+      res.json(products[i].id);
+    } else {
+      res.send('product not found');
+    }
+  }
+})
+
 //keep this always at the bottom so that you can see the errors reported
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
