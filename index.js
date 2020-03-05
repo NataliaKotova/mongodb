@@ -8,7 +8,7 @@ const config = require('./config.json');//has credentials
 const products = require('./Products.json');//external json data from mockaroo api
 const dbProducts = require('./models/products.js');
 const User = require('./models/users.js');
-
+const Product = require('./models/products.js');
 
 const port = 3000;
 
@@ -35,34 +35,14 @@ app.use((req,res,next)=>{
 //including body-parser, cors, bcryptjs
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
-
 app.use(cors());
 
 app.get('/', (req, res) => res.send('Hello World!'))
-
-app.get('/allProducts', (req,res)=>{
-  res.json(product);
-
-});
-
-app.get('/products/p=:id', (req,res)=>{
-  const idParam = req.params.id;
-
-  for (let i = 0; i < product.length; i++){
-
-    if (idParam.toString() === products[i].id.toString()) {
-       res.json(products[i]);
-    }
-  }
-
-});
-
 
 //register user
 app.post('/registerUser', (req,res)=>{
   //checking if user is found in the db already
   User.findOne({username:req.body.username},(err,userResult)=>{
-
     if (userResult){
       res.send('username taken already. Please try another one');
     } else{
@@ -78,13 +58,10 @@ app.post('/registerUser', (req,res)=>{
          res.send(result);
        }).catch(err => res.send(err));
     }
-
   })
-
-
 });
 
-//get all user
+//get all users
 app.get('/allUsers', (req,res)=>{
   User.find().then(result =>{
     res.send(result);
@@ -106,12 +83,92 @@ app.post('/loginUser', (req,res)=>{
   });//findOne
 }); //post
 
+//register product
+app.post('/addProduct', (req,res)=>{
+  //checking if product is found in the db already
+  Product.findOne({name:req.body.name},(err,productResult)=>{
+    if (productResult){
+      res.send('productname taken already. Please try another one');
+    } else{
+       const product = new Product({
+         _id : new mongoose.Types.ObjectId,
+         name : req.body.name,
+         price : req.body.price,
+         imageUrl : req.body.imageUrl
+       });
+       //save to database and notify the user accordingly
+       product.save().then(result =>{
+         res.send(result);
+       }).catch(err => res.send(err));
+    }
+  })
+});
+
+app.patch('/updateProduct/:id', (req,res)=>{
+  const idParam = req.params.id;
+  Product.findById(idParam,(err,product)=>{
+    const updatedProduct = {
+      name:req.body.name,
+      price:req.body.price,
+      imageUrl:req.body.imageUrl
+    };
+    Product.updateOne({_id:idParam}, updatedProduct).then(result=>{
+      res.send(result);
+    }).catch(err=>res.send(err));
+  }).catch(err=>res.send('not found'));
+});
+
+app.get('/allProducts', (req,res)=>{
+  res.json(products);
+});
+
+app.get('/products/id=:id', (req,res)=>{
+  const idParam = req.params.id;
+  for (let i = 0; i < products.length; i++){
+    if (idParam.toString() === products[i].id.toString()) {
+       res.json(products[i]);
+    }
+  }
+});
+
+app.get('/products/n=:name', (req,res)=>{
+  const nameParam = req.params.name;
+  for (let i = 0; i < products.length; i++){
+    if (nameParam.toLowerCase() === products[i].name.toLowerCase()) {
+       res.json(products[i]);
+    }
+  }
+});
+
+app.get('/products/pr=:price', (req,res)=>{
+  const priceParam = req.params.price;
+  for (let i = 0; i < products.length; i++){
+    if (priceParam.toString() === products[i].price.toString()) {
+       res.json(products[i]);
+    }
+  }
+});
+
+//delite products
+app.delete('/deleteProduct/:id',(req,res)=> {
+  const idParam = req.params.id;
+  //underscore means we search in mongodb
+  Product.findOne({_id:idParam}, (err,product) =>{
+    if(product){
+      Product.deleteOne({_id:idParam}, err=>{
+        res.send('deleted');
+      });
+    } else {
+      res.send('not found');
+    }
+  }).catch(err => res.send(err));
+});
 
 //keep this always at the bottom so that you can see the errors reported
 app.listen(port, () => console.log(`Mongodb app listening on port ${port}!`))
 
 
-//homework: creaate form, register and login
+//homework: create form, register and login
 //create price(decimal or double)
 //create model for product, code in index.js to post new product
 //add new Products
