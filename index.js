@@ -94,7 +94,7 @@ app.post('/addProduct', (req,res)=>{
          _id : new mongoose.Types.ObjectId,
          name : req.body.name,
          price : req.body.price,
-         imageUrl : req.body.imageUrl
+         user_id : req.body.userId
        });
        //save to database and notify the user accordingly
        product.save().then(result =>{
@@ -110,7 +110,7 @@ app.patch('/updateProduct/:id', (req,res)=>{
     const updatedProduct = {
       name:req.body.name,
       price:req.body.price,
-      imageUrl:req.body.imageUrl
+      user_id:req.body.userId
     };
     Product.updateOne({_id:idParam}, updatedProduct).then(result=>{
       res.send(result);
